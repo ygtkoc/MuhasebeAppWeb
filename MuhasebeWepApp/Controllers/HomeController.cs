@@ -1,4 +1,8 @@
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using MuhasebeWepApp.Models;
 
@@ -15,83 +19,83 @@ namespace MuhasebeWepApp.Controllers
 
         private static readonly IReadOnlyList<Bank> Banks = new List<Bank>
         {
-            new("001", "Türkiye Cumhuriyet Merkez Bankası A.Ş."),
-            new("004", "İller Bankası"),
-            new("010", "Türkiye Cumhuriyeti Ziraat Bankası A.Ş."),
-            new("012", "Türkiye Halk Bankası A.Ş."),
+            new("001", "TÃ¼rkiye Cumhuriyet Merkez BankasÃ½ A.Ã."),
+            new("004", "Ãller BankasÃ½"),
+            new("010", "TÃ¼rkiye Cumhuriyeti Ziraat BankasÃ½ A.Ã."),
+            new("012", "TÃ¼rkiye Halk BankasÃ½ A.Ã."),
             new("013", "Denizbank"),
-            new("014", "Türkiye Sınai Kalkınma Bankası A.Ş."),
-            new("015", "Türkiye Vakıflar Bankası T.A.O."),
-            new("016", "Türkiye İhracat Kredi Bankası A.Ş. (Eximbank)"),
-            new("017", "Türkiye Kalkınma Bankası A.Ş."),
-            new("029", "Birleşik Fon Bankası A.Ş. (Bayındırbank A.Ş.)"),
-            new("032", "Türk Ekonomi Bankası A.Ş."),
-            new("034", "Aktif Yatırım Bankası A.Ş."),
-            new("046", "Akbank T.A.Ş."),
-            new("048", "HSBC Bank A.Ş."),
-            new("058", "Sınai Yatırım Bankası A.Ş."),
-            new("059", "Şekerbank T.A.Ş."),
-            new("062", "Türkiye Garanti Bankası A.Ş."),
-            new("064", "Türkiye İş Bankası A.Ş."),
-            new("067", "Yapı ve Kredi Bankası A.Ş."),
+            new("014", "TÃ¼rkiye SÃ½nai KalkÃ½nma BankasÃ½ A.Ã."),
+            new("015", "TÃ¼rkiye VakÃ½flar BankasÃ½ T.A.O."),
+            new("016", "TÃ¼rkiye Ãhracat Kredi BankasÃ½ A.Ã. (Eximbank)"),
+            new("017", "TÃ¼rkiye KalkÃ½nma BankasÃ½ A.Ã."),
+            new("029", "BirleÃ¾ik Fon BankasÃ½ A.Ã. (BayÃ½ndÃ½rbank A.Ã.)"),
+            new("032", "TÃ¼rk Ekonomi BankasÃ½ A.Ã."),
+            new("034", "Aktif YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("046", "Akbank T.A.Ã."),
+            new("048", "HSBC Bank A.Ã."),
+            new("058", "SÃ½nai YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("059", "Ãekerbank T.A.Ã."),
+            new("062", "TÃ¼rkiye Garanti BankasÃ½ A.Ã."),
+            new("064", "TÃ¼rkiye ÃÃ¾ BankasÃ½ A.Ã."),
+            new("067", "YapÃ½ ve Kredi BankasÃ½ A.Ã."),
             new("071", "Fortis Bank (TEB)"),
             new("087", "Banca di Roma"),
-            new("088", "The Royal Bank of Scotland PLC Merkezi Amsterdam İstanbul Merkez Şubesi"),
-            new("091", "Arap Türk Bankası A.Ş."),
+            new("088", "The Royal Bank of Scotland PLC Merkezi Amsterdam Ãstanbul Merkez Ãubesi"),
+            new("091", "Arap TÃ¼rk BankasÃ½ A.Ã."),
             new("092", "Citibank N.A."),
             new("094", "Bank Mellat"),
             new("095", "BCCI"),
-            new("096", "Turkish Bank A.Ş."),
+            new("096", "Turkish Bank A.Ã."),
             new("097", "Habib Bank Limited"),
-            new("098", "JP Morgan Chase Bank İstanbul Türkiye Şubesi"),
-            new("099", "Oyak Bank A.Ş. - ING BANK"),
-            new("100", "Adabank A.Ş."),
-            new("101", "Türk Sakura Bank A.Ş."),
-            new("103", "Fiba Bank A.Ş."),
+            new("098", "JP Morgan Chase Bank Ãstanbul TÃ¼rkiye Ãubesi"),
+            new("099", "Oyak Bank A.Ã. - ING BANK"),
+            new("100", "Adabank A.Ã."),
+            new("101", "TÃ¼rk Sakura Bank A.Ã."),
+            new("103", "Fiba Bank A.Ã."),
             new("104", "IMPEXBANK"),
             new("106", "PORTIGON A.G."),
-            new("107", "BNP-Ak-Dresdner Bank A.Ş."),
-            new("108", "Turkland Bank A.Ş."),
-            new("109", "Tekstil Bankası A.Ş."),
+            new("107", "BNP-Ak-Dresdner Bank A.Ã."),
+            new("108", "Turkland Bank A.Ã."),
+            new("109", "Tekstil BankasÃ½ A.Ã."),
             new("110", "Credit Lyonnais"),
-            new("111", "Finansbank A.Ş."),
+            new("111", "Finansbank A.Ã."),
             new("113", "Marbank"),
-            new("115", "Deutsche Bank A.Ş."),
-            new("116", "TAİB Yatırım Bank A.Ş."),
-            new("117", "Turizm Yatırım ve Ticaret Bank A.Ş."),
-            new("118", "Kıbrıs Kredi Bankası"),
-            new("119", "Birleşik Yatırım"),
-            new("121", "Standard Chartered Yatırım Bankası Türk A.Ş."),
+            new("115", "Deutsche Bank A.Ã."),
+            new("116", "TAÃB YatÃ½rÃ½m Bank A.Ã."),
+            new("117", "Turizm YatÃ½rÃ½m ve Ticaret Bank A.Ã."),
+            new("118", "KÃ½brÃ½s Kredi BankasÃ½"),
+            new("119", "BirleÃ¾ik YatÃ½rÃ½m"),
+            new("121", "Standard Chartered YatÃ½rÃ½m BankasÃ½ TÃ¼rk A.Ã."),
             new("122", "Societe Generale"),
-            new("123", "HSBC Bank A.Ş."),
-            new("124", "Alternatifbank A.Ş."),
-            new("125", "Burganbank A.Ş."),
+            new("123", "HSBC Bank A.Ã."),
+            new("124", "Alternatifbank A.Ã."),
+            new("125", "Burganbank A.Ã."),
             new("127", "KentBank"),
-            new("128", "Park Yatırım Bankası"),
-            new("129", "Tat Yatırım Bankası A.Ş."),
-            new("132", "IMKB Takas ve Saklama Bankası A.Ş."),
+            new("128", "Park YatÃ½rÃ½m BankasÃ½"),
+            new("129", "Tat YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("132", "IMKB Takas ve Saklama BankasÃ½ A.Ã."),
             new("133", "ING BANK"),
-            new("134", "Denizbank A.Ş."),
-            new("135", "Anadolubank A.Ş."),
-            new("136", "Okan Yatırım Bankası A. Ş"),
-            new("137", "Rabobank Nederland İstanbul Merkez Şubesi"),
-            new("138", "Diler Yatırım Bankası A.Ş."),
-            new("139", "GSD Yatırım Bankası A.Ş."),
-            new("140", "Credit Suisse First Boston İstanbul Şubesi"),
-            new("141", "Nurol Yatırım Bankası A.Ş."),
-            new("142", "Bank Pozitif Kredi ve Kalkınma Bankası A.Ş."),
-            new("144", "Atlas Yatırım Bankası A.Ş."),
+            new("134", "Denizbank A.Ã."),
+            new("135", "Anadolubank A.Ã."),
+            new("136", "Okan YatÃ½rÃ½m BankasÃ½ A. Ã"),
+            new("137", "Rabobank Nederland Ãstanbul Merkez Ãubesi"),
+            new("138", "Diler YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("139", "GSD YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("140", "Credit Suisse First Boston Ãstanbul Ãubesi"),
+            new("141", "Nurol YatÃ½rÃ½m BankasÃ½ A.Ã."),
+            new("142", "Bank Pozitif Kredi ve KalkÃ½nma BankasÃ½ A.Ã."),
+            new("144", "Atlas YatÃ½rÃ½m BankasÃ½ A.Ã."),
             new("145", "Morgan Guarenty Trusy Company"),
-            new("146", "OdeaBank A.Ş."),
-            new("147", "Bank of Tokyo -Mitsubishi UFJ Turkey A.Ş."),
-            new("148", "Intesa SanPaolo SPA İtalya-İstanbul Merkez Şubesi"),
-            new("203", "Al Baraka Türk Katılım Bankası A.Ş."),
+            new("146", "OdeaBank A.Ã."),
+            new("147", "Bank of Tokyo -Mitsubishi UFJ Turkey A.Ã."),
+            new("148", "Intesa SanPaolo SPA Ãtalya-Ãstanbul Merkez Ãubesi"),
+            new("203", "Al Baraka TÃ¼rk KatÃ½lÃ½m BankasÃ½ A.Ã."),
             new("204", "Family Finans Kurumu"),
-            new("205", "Kuveyt Türk Katılım Bankası A.Ş."),
-            new("206", "Türkiye Finans Katılım Bankası A.Ş."),
-            new("208", "Asya Katılım Bankası A.Ş."),
-            new("210", "Vakıf Katılım Bankası A.Ş."),
-            new("223", "Al Baraka Türk Katılım Bankası A.Ş.")
+            new("205", "Kuveyt TÃ¼rk KatÃ½lÃ½m BankasÃ½ A.Ã."),
+            new("206", "TÃ¼rkiye Finans KatÃ½lÃ½m BankasÃ½ A.Ã."),
+            new("208", "Asya KatÃ½lÃ½m BankasÃ½ A.Ã."),
+            new("210", "VakÃ½f KatÃ½lÃ½m BankasÃ½ A.Ã."),
+            new("223", "Al Baraka TÃ¼rk KatÃ½lÃ½m BankasÃ½ A.Ã.")
         };
 
         public IActionResult Index()
@@ -107,6 +111,83 @@ namespace MuhasebeWepApp.Controllers
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadStatement(IFormFile? statementFile)
+        {
+            if (statementFile == null || statementFile.Length == 0)
+            {
+                return BadRequest("GeÃ§erli bir dosya seÃ§iniz.");
+            }
+
+            if (!Path.GetExtension(statementFile.FileName).Equals(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest("Sadece .csv uzantÄ±lÄ± dosyalar desteklenmektedir.");
+            }
+
+            var entries = new List<BankStatementEntry>();
+            var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
+
+            using var stream = statementFile.OpenReadStream();
+            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+
+            var isHeader = true;
+            while (!reader.EndOfStream)
+            {
+                var rawLine = await reader.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(rawLine))
+                {
+                    continue;
+                }
+
+                if (isHeader)
+                {
+                    isHeader = false;
+                    continue;
+                }
+
+                var segments = SplitCsvLine(rawLine);
+                if (segments.Length < 3)
+                {
+                    continue;
+                }
+
+                if (!DateTime.TryParse(segments[0], turkishCulture, DateTimeStyles.None, out var documentDate))
+                {
+                    continue;
+                }
+
+                var description = segments[1];
+
+                decimal.TryParse(segments[2], NumberStyles.Any, turkishCulture, out var amount);
+                var entry = new BankStatementEntry
+                {
+                    DocumentDate = documentDate,
+                    Description = description,
+                    Debt = amount > 0 ? amount : 0,
+                    Credit = amount < 0 ? Math.Abs(amount) : 0
+                };
+
+                entries.Add(entry);
+            }
+
+            return PartialView("_StatementTable", entries);
+        }
+
+        private static string[] SplitCsvLine(string line)
+        {
+            var separators = new[] { ';', ',', '\t' };
+            foreach (var separator in separators)
+            {
+                var parts = line.Split(separator);
+                if (parts.Length >= 3)
+                {
+                    return parts.Select(p => p.Trim('"')).ToArray();
+                }
+            }
+
+            return new[] { line };
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

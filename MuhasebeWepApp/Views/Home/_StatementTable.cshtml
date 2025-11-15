@@ -1,0 +1,35 @@
+@using System.Linq
+@model IEnumerable<MuhasebeWepApp.Models.BankStatementEntry>
+
+<table class="statement-table">
+    <thead>
+        <tr>
+            <th>Evrak Tarihi</th>
+            <th>Açıklama</th>
+            <th>Borç</th>
+            <th>Alacak</th>
+            <th>Kapatılacak Hesap</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="5" class="empty-row">Yüklü ekstrede gösterilecek kayıt bulunamadı.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var entry in Model)
+            {
+                <tr>
+                    <td>@entry.DocumentDate.ToString("dd.MM.yyyy")</td>
+                    <td>@entry.Description</td>
+                    <td class="amount">@entry.Debt.ToString("N2")</td>
+                    <td class="amount">@entry.Credit.ToString("N2")</td>
+                    <td></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

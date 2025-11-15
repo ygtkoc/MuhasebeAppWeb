@@ -21,11 +21,11 @@
             <div class="control-group">
                 <label class="control-label">Ekstre Yükle</label>
                 <button type="button" id="statementUploadButton" class="control-button" disabled>Ekstre Yükle</button>
-                <input type="file" id="statementUploadInput" class="visually-hidden" accept=".pdf,.xls,.xlsx,.csv" disabled />
+                <input type="file" id="statementUploadInput" class="visually-hidden" accept=".csv" disabled />
             </div>
         </div>
-        <div class="workspace-board">
-            <p class="board-placeholder">Ekstre yüklemeye başlamadan önce bir banka seçin.</p>
+        <div class="workspace-board" id="statementBoard">
+            <p class="board-placeholder" id="boardPlaceholder">Ekstre yüklemeye başlamadan önce bir banka seçin.</p>
         </div>
         <p id="selectedBankHint" class="selection-hint">Önce bir banka seçiniz.</p>
     </div>
@@ -112,10 +112,55 @@
             align-items: center;
             justify-content: center;
             color: #8c92a4;
+            padding: 1rem;
+            overflow: auto;
         }
 
         .board-placeholder {
             font-style: italic;
+            text-align: center;
+        }
+
+        .workspace-board.table-loaded {
+            border-style: solid;
+            border-color: #c4c4c4;
+            color: inherit;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            color: #1f2430;
+        }
+
+        .statement-table thead {
+            background-color: #f0f2f8;
+        }
+
+        .statement-table th,
+        .statement-table td {
+            padding: 0.65rem 0.75rem;
+            border-bottom: 1px solid #e2e6f0;
+            text-align: left;
+        }
+
+        .statement-table th {
+            font-weight: 600;
+            color: #4a4f5c;
+            font-size: 0.85rem;
+        }
+
+        .statement-table td.amount {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .statement-table .empty-row {
+            text-align: center;
+            color: #8c92a4;
         }
 
         .selection-hint {
@@ -176,10 +221,18 @@
             const uploadButton = document.getElementById('statementUploadButton');
             const uploadInput = document.getElementById('statementUploadInput');
             const hint = document.getElementById('selectedBankHint');
+            const board = document.getElementById('statementBoard');
+            let placeholder = document.getElementById('boardPlaceholder');
 
             const getSelectedBankText = () => {
                 const selectedOption = bankSelect.options[bankSelect.selectedIndex];
                 return selectedOption ? selectedOption.text : '';
+            };
+
+            const resetBoard = (message) => {
+                board.classList.remove('table-loaded');
+                board.innerHTML = `<p class="board-placeholder" id="boardPlaceholder">${message}</p>`;
+                placeholder = document.getElementById('boardPlaceholder');
             };
 
             bankSelect.addEventListener('change', () => {
@@ -191,6 +244,7 @@
                     : 'Önce bir banka seçiniz.';
                 if (!hasSelection) {
                     uploadInput.value = '';
+                    resetBoard('Ekstre yüklemeye başlamadan önce bir banka seçin.');
                 }
             });
 
@@ -200,9 +254,34 @@
                 }
             });
 
-            uploadInput.addEventListener('change', () => {
-                if (uploadInput.files.length > 0) {
-                    hint.textContent = `${uploadInput.files[0].name} dosyası seçildi (${getSelectedBankText()}).`;
+            uploadInput.addEventListener('change', async () => {
+                if (uploadInput.files.length === 0) {
+                    return;
+                }
+
+                const selectedFile = uploadInput.files[0];
+                hint.textContent = `${selectedFile.name} dosyası seçildi (${getSelectedBankText()}).`;
+
+                const formData = new FormData();
+                formData.append('statementFile', selectedFile);
+
+                try {
+                    const response = await fetch('/Home/UploadStatement', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const message = await response.text();
+                        resetBoard(message || 'Dosya yüklenirken bir sorun oluştu.');
+                        return;
+                    }
+
+                    const html = await response.text();
+                    board.innerHTML = html;
+                    board.classList.add('table-loaded');
+                } catch (error) {
+                    resetBoard('Dosya yüklenirken bir hata meydana geldi.');
                 }
             });
         });
