@@ -98,6 +98,9 @@ namespace MuhasebeWepApp.Controllers
             new("223", "Al Baraka Türk Katýlým Bankasý A.Þ.")
         };
 
+        private static readonly Encoding TurkishEncoding =
+            CodePagesEncodingProvider.Instance.GetEncoding(1254) ?? Encoding.UTF8;
+
         public IActionResult Index()
         {
             var model = new BankSelectionViewModel
@@ -129,8 +132,13 @@ namespace MuhasebeWepApp.Controllers
             var entries = new List<BankStatementEntry>();
             var turkishCulture = CultureInfo.GetCultureInfo("tr-TR");
 
-            using var stream = statementFile.OpenReadStream();
-            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+            await using var memoryStream = new MemoryStream();
+            await statementFile.CopyToAsync(memoryStream);
+
+            var encoding = DetectEncoding(memoryStream);
+            memoryStream.Position = 0;
+
+            using var reader = new StreamReader(memoryStream, encoding, detectEncodingFromByteOrderMarks: true);
 
             var isHeader = true;
             while (!reader.EndOfStream)
@@ -188,6 +196,31 @@ namespace MuhasebeWepApp.Controllers
             }
 
             return new[] { line };
+        }
+
+        private static Encoding DetectEncoding(Stream stream)
+        {
+            const char replacementCharacter = '\uFFFD';
+
+            if (!stream.CanSeek)
+            {
+                throw new InvalidOperationException("Stream must support seeking for encoding detection.");
+            }
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            using var utf8Reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
+            var content = utf8Reader.ReadToEnd();
+            var encodingUsed = utf8Reader.CurrentEncoding;
+
+            stream.Seek(0, SeekOrigin.Begin);
+
+            if (content.IndexOf(replacementCharacter) >= 0)
+            {
+                return TurkishEncoding;
+            }
+
+            return encodingUsed;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
