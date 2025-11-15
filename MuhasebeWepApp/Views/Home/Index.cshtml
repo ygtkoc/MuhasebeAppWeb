@@ -1,8 +1,210 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model BankSelectionViewModel
+
+@{
+    ViewData["Title"] = "Banka Ekstre Yükleme";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+
+<div class="dashboard">
+    <div class="workspace">
+        <div class="controls">
+            <div class="control-group">
+                <label for="bankSelect" class="control-label">Banka Seçiniz</label>
+                <select id="bankSelect" class="control-select" asp-for="SelectedBankId">
+                    <option value="">Banka Seçiniz</option>
+                    @foreach (var bank in Model.Banks)
+                    {
+                        <option value="@bank.Id">@bank.Id - @bank.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Ekstre Yükle</label>
+                <button type="button" id="statementUploadButton" class="control-button" disabled>Ekstre Yükle</button>
+                <input type="file" id="statementUploadInput" class="visually-hidden" accept=".pdf,.xls,.xlsx,.csv" disabled />
+            </div>
+        </div>
+        <div class="workspace-board">
+            <p class="board-placeholder">Ekstre yüklemeye başlamadan önce bir banka seçin.</p>
+        </div>
+        <p id="selectedBankHint" class="selection-hint">Önce bir banka seçiniz.</p>
+    </div>
+    <div class="actions">
+        <button type="button" class="transfer-button">Lucaya Aktar</button>
+    </div>
 </div>
+
+@section Styles {
+    <style>
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+            height: calc(100vh - 160px);
+        }
+
+        .workspace {
+            position: relative;
+            flex: 1;
+            border: 1px solid #c4c4c4;
+            border-radius: 8px;
+            padding: 1.5rem;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .controls {
+            align-self: flex-end;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 220px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .control-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .control-select,
+        .control-button {
+            width: 100%;
+            padding: 0.55rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #cfd2dc;
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+
+        .control-select:focus,
+        .control-button:focus {
+            border-color: #1b64f2;
+            box-shadow: 0 0 0 2px rgba(27, 100, 242, 0.15);
+            outline: none;
+        }
+
+        .control-button {
+            background-color: #1b64f2;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .control-button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .workspace-board {
+            flex: 1;
+            margin-top: 2rem;
+            border: 1px dashed #d2d6e1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8c92a4;
+        }
+
+        .board-placeholder {
+            font-style: italic;
+        }
+
+        .selection-hint {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #5a6275;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .transfer-button {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #1b64f2;
+            background-color: transparent;
+            color: #1b64f2;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .transfer-button:hover {
+            background-color: #1b64f2;
+            color: #fff;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard {
+                height: auto;
+            }
+
+            .controls {
+                width: 100%;
+                align-self: stretch;
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bankSelect = document.getElementById('bankSelect');
+            const uploadButton = document.getElementById('statementUploadButton');
+            const uploadInput = document.getElementById('statementUploadInput');
+            const hint = document.getElementById('selectedBankHint');
+
+            const getSelectedBankText = () => {
+                const selectedOption = bankSelect.options[bankSelect.selectedIndex];
+                return selectedOption ? selectedOption.text : '';
+            };
+
+            bankSelect.addEventListener('change', () => {
+                const hasSelection = !!bankSelect.value;
+                uploadButton.disabled = !hasSelection;
+                uploadInput.disabled = !hasSelection;
+                hint.textContent = hasSelection
+                    ? `${getSelectedBankText()} için ekstre yükleyebilirsiniz.`
+                    : 'Önce bir banka seçiniz.';
+                if (!hasSelection) {
+                    uploadInput.value = '';
+                }
+            });
+
+            uploadButton.addEventListener('click', () => {
+                if (!uploadButton.disabled) {
+                    uploadInput.click();
+                }
+            });
+
+            uploadInput.addEventListener('change', () => {
+                if (uploadInput.files.length > 0) {
+                    hint.textContent = `${uploadInput.files[0].name} dosyası seçildi (${getSelectedBankText()}).`;
+                }
+            });
+        });
+    </script>
+}

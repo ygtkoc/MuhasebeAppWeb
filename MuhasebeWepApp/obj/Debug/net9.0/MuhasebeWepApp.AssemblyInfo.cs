@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MuhasebeWepApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+09ad8d8ca5f980063136c1ff61653dc84123d6ab")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b2af20acc1492ae7ae36a8dd68f1915f8edcae9")]
 [assembly: System.Reflection.AssemblyProductAttribute("MuhasebeWepApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MuhasebeWepApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
